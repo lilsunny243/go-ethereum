@@ -125,7 +125,7 @@ type jsTracer struct {
 // The methods `result` and `fault` are required to be present.
 // The methods `step`, `enter`, and `exit` are optional, but note that
 // `enter` and `exit` always go together.
-func newJsTracer(code string, ctx *tracers.Context) (tracers.Tracer, error) {
+func newJsTracer(code string, ctx *tracers.Context, cfg json.RawMessage) (tracers.Tracer, error) {
 	if c, ok := assetTracers[code]; ok {
 		code = c
 	}
@@ -177,6 +177,17 @@ func newJsTracer(code string, ctx *tracers.Context) (tracers.Tracer, error) {
 	t.exit = exit
 	t.result = result
 	t.fault = fault
+
+	// Pass in config
+	if setup, ok := goja.AssertFunction(obj.Get("setup")); ok {
+		cfgStr := "{}"
+		if cfg != nil {
+			cfgStr = string(cfg)
+		}
+		if _, err := setup(obj, vm.ToValue(cfgStr)); err != nil {
+			return nil, err
+		}
+	}
 	// Setup objects carrying data to JS. These are created once and re-used.
 	t.log = &steplog{
 		vm:       vm,
@@ -248,6 +259,7 @@ func (t *jsTracer) CaptureState(pc uint64, op vm.OpCode, gas, cost uint64, scope
 	log.pc = uint(pc)
 	log.gas = uint(gas)
 	log.cost = uint(cost)
+	log.refund = uint(t.env.StateDB.GetRefund())
 	log.depth = uint(depth)
 	log.err = err
 	if _, err := t.step(t.obj, t.logValue, t.dbValue); err != nil {
