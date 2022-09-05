@@ -73,6 +73,7 @@ func Env() Environment {
 			IsPullRequest: os.Getenv("TRAVIS_PULL_REQUEST") != "false",
 			IsCronJob:     os.Getenv("TRAVIS_EVENT_TYPE") == "cron",
 		}
+
 	case os.Getenv("CI") == "True" && os.Getenv("APPVEYOR") == "True":
 		commit := os.Getenv("APPVEYOR_PULL_REQUEST_HEAD_COMMIT")
 		if commit == "" {
@@ -90,6 +91,32 @@ func Env() Environment {
 			IsPullRequest: os.Getenv("APPVEYOR_PULL_REQUEST_NUMBER") != "",
 			IsCronJob:     os.Getenv("APPVEYOR_SCHEDULED_BUILD") == "True",
 		}
+
+	case os.Getenv("CI") == "true" && os.Getenv("ETH_BUILDBOT") == "true":
+		// For buildbot, the branch variable is the branch OR tag, and
+		// we can distinguish them by the git refspec.
+		var branch, tag string
+		branchSpec := os.Getenv("BUILD_BRANCH")
+		if strings.HasPrefix(branchSpec, "refs/tags/") {
+			tag = strings.TrimPrefix(branchSpec, "refs/tags/")
+		} else {
+			branch = branchSpec
+		}
+
+		commit := os.Getenv("BUILD_COMMIT")
+		return Environment{
+			CI:            true,
+			Name:          "buildbot",
+			Repo:          os.Getenv("BUILD_REPO"),
+			Buildnum:      os.Getenv("BUILD_NUMBER"),
+			IsPullRequest: os.Getenv("BUILD_IS_PR") == "true",
+			IsCronJob:     os.Getenv("BUILD_IS_CRON") == "true",
+			Commit:        commit,
+			Date:          getDate(commit),
+			Branch:        branch,
+			Tag:           tag,
+		}
+
 	default:
 		return LocalEnv()
 	}
