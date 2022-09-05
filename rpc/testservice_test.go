@@ -208,3 +208,18 @@ type largeRespService struct {
 func (x largeRespService) LargeResp() string {
 	return strings.Repeat("x", x.length)
 }
+
+type MarshalErrObj struct {
+}
+
+// invalidMarshalService simulutes services returning invalid object
+// for json marshal.
+type invalidMarshalService struct{}
+
+func (x invalidMarshalService) InvalidObj() *MarshalErrObj {
+	return &MarshalErrObj{}
+}
+
+func (o *MarshalErrObj) MarshalText() ([]byte, error) {
+	return nil, errors.New("marshal error")
+}
