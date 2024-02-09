@@ -13,7 +13,7 @@ require (
 	github.com/cespare/cp v0.1.0
 	github.com/cloudflare/cloudflare-go v0.14.0
 	github.com/cockroachdb/pebble v0.0.0-20230209160836-829675f94811
-	github.com/consensys/gnark-crypto v0.12.0
+	github.com/consensys/gnark-crypto v0.12.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/docker/docker v20.10.24+incompatible
